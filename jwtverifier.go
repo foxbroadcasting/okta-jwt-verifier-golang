@@ -20,17 +20,18 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"regexp"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
 	"github.com/okta/okta-jwt-verifier-golang/discovery"
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
 	"github.com/patrickmn/go-cache"
-	"net/http"
-	"regexp"
-	"strings"
-	"sync"
-	"time"
 )
 
 var metaDataCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
@@ -189,7 +190,8 @@ func (j *JwtVerifier) GetAdaptor() adaptors.Adaptor {
 }
 
 func (j *JwtVerifier) validateNonce(nonce interface{}) error {
-	if nonce != j.ClaimsToValidate["nonce"] {
+	val, ok := j.ClaimsToValidate["nonce"]
+	if ok && nonce != val {
 		return fmt.Errorf("nonce: %s does not match %s", nonce, j.ClaimsToValidate["nonce"])
 	}
 	return nil
